@@ -7,7 +7,7 @@ void rb_init(rbuffer_t *buf, int size)
     buf->size = size;
     buf->start = 0;
     buf->end = 0;
-    buf->ele = (char *) malloc(sizeof(char) * size);
+    buf->ele = (char *) kmalloc(sizeof(char) * size);
     return buf;
 }
 

@@ -2,7 +2,7 @@
 #include "uart.h"
 
 static char *heap_end = (char *) HEAP_START;
-void *malloc(unsigned int size)
+void *kmalloc(unsigned int size)
 {
     // size not valid
     if (size <= 0 || size > HEAP_SIZE) {

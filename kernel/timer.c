@@ -8,7 +8,7 @@ void add_timer(void)
     char *line = NULL;
     getline(&line, 0x20);
 
-    char *message = (char *) malloc(sizeof(char) * 50);
+    char *message = (char *) kmalloc(sizeof(char) * 50);
     int second = 0;
 
     // message
@@ -40,7 +40,7 @@ void add_timer(void)
 // timer_t *init_timer(char *msg, int second)
 // {
 //     // uart_send('d');
-//     // timer_t *timer = (timer_t *) malloc(sizeof(timer_t));
+//     // timer_t *timer = (timer_t *) kmalloc(sizeof(timer_t));
 //     // uart_send('e');
 //     // uart_hex(timer);
 //     // timer->second = second;

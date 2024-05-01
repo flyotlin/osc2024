@@ -84,7 +84,7 @@ int hex_atoi(const char *s, int len)
 */
 int getdelim(char **lineptr, int n, int delim)
 {
-    *lineptr = (char *) malloc(sizeof(char) * n);
+    *lineptr = (char *) kmalloc(sizeof(char) * n);
 
     char c;
     int idx = 0;

@@ -21,7 +21,7 @@ void fdt_traverse(fdt_callback_t cb)
     }
 
     // create blob object to device tree binary
-    blob_t *blob = (blob_t *) malloc(sizeof(blob_t));
+    blob_t *blob = (blob_t *) kmalloc(sizeof(blob_t));
     blob->base = (uint32_t *) fdt_header; 
     blob->ptr = blob->base;
     BLOB_ADVANCE(blob, fdt_header->off_dt_struct);

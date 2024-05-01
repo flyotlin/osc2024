@@ -5,7 +5,7 @@
 
 cpio_meta_t *init_cpio_meta()
 {
-    cpio_meta_t *meta = (cpio_meta_t *) malloc(sizeof(cpio_meta_t));
+    cpio_meta_t *meta = (cpio_meta_t *) kmalloc(sizeof(cpio_meta_t));
 
     meta->filename = NULL;
     meta->content = NULL;
