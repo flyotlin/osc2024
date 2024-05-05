@@ -11,19 +11,11 @@
 enum page_flag {
     USED,
     AVAILABLE,
-    // BUDDY,
 };
 
 typedef struct page {
     enum page_flag flag;
     int order;
-    // unsigned long pfn;  // TODO: for calculating address
-    // unsigned long flags;
-    // void *freelist;
-
-    // struct page *parent;
-    // struct page *left;
-    // struct page *right;
 } page_t;
 
 
@@ -32,10 +24,12 @@ void init_buddy_system(void);
 void *allocate(int size);
 page_t *build_frame(int order);
 int find_page(int index, int size);
+void free(void *addr);
 
 #define left(index) ((index << 1) + 1)
 #define right(index) ((index << 1) + 2)
 #define parent(index) ((index - 1) >> 1)
+#define sibling(index) ((index % 2) ? index + 1 : index - 1)
 // #define get_page_address(p) 1000
 
 // TODO: move to memblock.h

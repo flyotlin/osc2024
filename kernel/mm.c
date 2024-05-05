@@ -15,46 +15,14 @@ void *allocate(int size)
 {
     int pfn = find_page(0, size);
     frame_array[pfn]->flag = USED;
-    // page_t *p = frame_array[pfn];
-    // uart_putints(p->order);
     uart_puts("pfn: ");
     uart_putints(pfn);
     uart_puts("\n\n\n\n");
-    // return NULL;
     return MM_START + (pfn << 12);
-    // int i = 0;
-    // page_t *cur = frame_array[i];
-    // page_t *prev = cur;
-    // while (1 << cur->order > size) {
-    //     // return order 0 page
-    //     if (cur->order == 0) {
-    //         prev = cur;
-    //         break;
-    //     }
-    //     // split current page if not exist
-    //     if (!frame_array[left(i)] && !frame_array[right(i)]) {
-    //         frame_array[i]->flag = USED;
-    //         frame_array[left(i)] = build_frame(cur->order - 1);
-    //         frame_array[right(i)] = build_frame(cur->order - 1);
-    //     }
-
-    //     if (frame_array[left(i)]->flag == AVAILABLE) {
-
-    //     } else if (frame_array[left(i)]->flag == AVAILABLE) {
-
-    //     } else {    // no available page (run out of memory)
-    //         return NULL;
-    //     }
-    // }
-
-    // return prev
 }
 
 page_t *build_frame(int order)
 {
-    // uart_puts("order: ");
-    // uart_putints(order);
-    // uart_puts("\n");
     page_t *p = (page_t *) kmalloc(sizeof(page_t));
     p->flag = AVAILABLE;
     p->order = order;
@@ -65,10 +33,6 @@ int find_page(int index, int size)
 {
     int flag = frame_array[index]->flag;
     int order = frame_array[index]->order;
-    // uart_putints(index);
-    // uart_puts(" ");
-    // uart_hex(order);
-    // uart_puts("\n");
 
     // return order 0 page
     if (order == 0) {
@@ -77,19 +41,6 @@ int find_page(int index, int size)
             return MM_MAX;
         }
         return index;
-        // return flag == AVAILABLE ? index : MM_MAX;
-    }
-
-    if (index == 32) {
-        uart_puts("32: ");
-        uart_putints(flag);
-        uart_puts(" ");
-        uart_putints(order);
-        uart_puts(" ");
-        uart_putints(size);
-        uart_puts(" ");
-        uart_putints((1 << (order-1)) * 0x1000);
-        uart_puts("\n");
     }
 
     // 目前的 page 可用，且下一層 size 不夠
@@ -97,16 +48,13 @@ int find_page(int index, int size)
         return index;
     }
 
-    // if (flag == USED) {
-    //     return MM_MAX;
-    // }
-
     // split current page if available
     if (flag == AVAILABLE && !frame_array[left(index)] && !frame_array[right(index)]) {
         if (index == 32) {
             uart_puts("32 got splitted!\n");
         }
         frame_array[index]->flag = USED;
+        // TODO: build left/right if NULL, else just update flag
         frame_array[left(index)] = build_frame(order-1);
         frame_array[right(index)] = build_frame(order-1);
     }
@@ -127,7 +75,25 @@ int find_page(int index, int size)
     uart_puts("\n");
     int right_pfn = find_page(right(index), size);
     return right_pfn;
+}
 
-    // // return smaller page first (MAXX is not found)
-    // return (left_pfn < right_pfn) ? left_pfn : right_pfn;
+void free(void *addr)
+{
+    int me = ((long) addr - MM_START) >> 12;
+    int sibling = sibling(me);
+    int parent;
+
+    while (1) {
+        // TODO: 還要 check me/sibling 是否存在吧？ -> 但向下 split 時一定會產生 sibling
+        if (frame_array[me]->flag == USED && frame_array[sibling]->flag == AVAILABLE) {
+            // merge
+            frame_array[me]->flag = AVAILABLE;
+            // update me and sibling
+            me = parent(me);
+            sibling = sibling(me);
+            frame_array[me]->flag = AVAILABLE;
+        } else {
+            break;
+        }
+    }
 }
