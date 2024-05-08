@@ -2,17 +2,27 @@
 #include "mm.h"
 #include "uart.h"
 
-static page_t **frame_array;
-void init_buddy_system()
+void init_mm()
 {
+    init_buddy_allocator();
+    init_slab_allocator();
+}
+
+static page_t **frame_array;
+void init_buddy_allocator()
+{
+    // TODO: create multiple buddy systems (use up all available memory)
     frame_array = (page_t **) kmalloc(sizeof(page_t *) * ((1 << (MM_MAX_ORDER + 1))));
-    frame_array[0] = (page_t *) kmalloc(sizeof(page_t));
-    frame_array[0]->flag = AVAILABLE;
-    frame_array[0]->order = MM_MAX_ORDER;
+    frame_array[0] = build_frame(MM_MAX_ORDER);
 }
 
 void *allocate(int size)
 {
+    // TODO: not smaller than 4096, but 2048 instead (2048 ~ 4096 -> allocate a page)
+    if (size < (1 << 11)) {     // slab allocator
+        return slab_allocate(size);
+    }
+    // buddy allocator
     int pfn = find_page(0, size);
     frame_array[pfn]->flag = USED;
     uart_puts("pfn: ");
@@ -26,6 +36,7 @@ page_t *build_frame(int order)
     page_t *p = (page_t *) kmalloc(sizeof(page_t));
     p->flag = AVAILABLE;
     p->order = order;
+    p->slab_id = MM_BUDDY;
     return p;
 }
 
@@ -96,4 +107,82 @@ void free(void *addr)
             break;
         }
     }
+}
+
+static slab_t *slabs[MM_CHUNK_SIZES];
+static int slab_chunk_sizes[] = {8, 16, 32, 64, 128, 256, 512, 1024, 2048};
+// NOTE: pages given to slab won't be released back to buddy again
+void init_slab_allocator(void)
+{
+    // allocate slabs with chunk size [8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+    int pfn;
+
+    chunk_t *chunk;
+    chunk_t *cur;
+    for (int i = 0; i < MM_CHUNK_SIZES; i++) {
+        chunk = NULL;
+        cur = NULL;
+        slabs[i] = (slab_t *) kmalloc(sizeof(slab_t));
+
+        // get one page
+        pfn = find_page(0, 1 << 12);
+        frame_array[pfn]->flag = USED;
+        frame_array[pfn]->slab_id = i;
+        uart_puts("slab pfn: ");
+        uart_putints(pfn);
+        uart_puts("\n\n\n\n");
+
+        // split page into chunks
+        int chunks_count = (1 << 12) / slab_chunk_sizes[i];
+        for (int k = 0; k < chunks_count; k++) {
+            chunk = MM_START + (pfn << 12) + (slab_chunk_sizes[i] * k);
+            chunk->next = NULL;
+
+            if (cur == NULL) {
+                cur = chunk;
+                slabs[i]->freelist = cur;
+                slabs[i]->chunk_size = slab_chunk_sizes[i]; // TODO: not required
+            } else {
+                cur->next = chunk;
+                cur = chunk;
+            }
+        }
+    }
+}
+
+void *slab_allocate(int size)
+{
+    // find closest chunk size
+    int i;
+    for (i = MM_CHUNK_SIZES - 1; i >= 0; i--) {
+        if (slab_chunk_sizes[i] < size) {
+            break;
+        }
+    }
+    i += 1;
+
+    uart_puts("allocate chunk from slab-");
+    uart_putints(slab_chunk_sizes[i]);
+    uart_puts("\n");
+
+    uart_putlong((long) slabs[i]->freelist);
+    uart_puts("\n");
+    // request page from buddy if no free chunk
+    chunk_t *chunk = slabs[i]->freelist;
+    slabs[i]->freelist = chunk->next;
+
+    // return free chunk's address
+    return chunk;
+}
+
+void slab_free(void *addr)
+{
+    // Find page by addr, then Find slab by slab_id on page
+    int pfn = ((long) addr - MM_START) >> 12;
+    page_t *p = frame_array[pfn];
+    slab_t *slab = slabs[p->slab_id];
+
+    // insert chunk to freelist
+    ((chunk_t *) addr)->next = slab->freelist;
+    slab->freelist = addr;
 }
