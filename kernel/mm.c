@@ -8,27 +8,65 @@ void init_mm()
     init_slab_allocator();
 }
 
+static page_t ***buddys;    // array of frame_array (page_t **)
 static page_t **frame_array;
+static int total_buddys = 0;
+static int n_buddys = 0;    // number of buddys
 void init_buddy_allocator()
 {
-    // TODO: create multiple buddy systems (use up all available memory)
-    frame_array = (page_t **) kmalloc(sizeof(page_t *) * ((1 << (MM_MAX_ORDER + 1))));
-    frame_array[0] = build_frame(MM_MAX_ORDER);
+    // calculate number of buddy systems
+    total_buddys = (MM_END - MM_START) / (1 << MM_MAX_ORDER);
+
+    // allocate memory for all buddys
+    buddys = (page_t ***) kmalloc(sizeof(page_t **) * total_buddys);
+    allocate_one_buddy();
+    frame_array = buddys[0];
+}
+
+/**
+ * Allocate a new buddy contiguously, and a root page frame
+*/
+void allocate_one_buddy()
+{
+    if (n_buddys >= total_buddys) {
+        return;
+    }
+
+    // allocate space for one buddy (2^(MM_MAX_ORDER+1)-1 page frames)
+    buddys[n_buddys] = (page_t **) kmalloc(sizeof(page_t *) * ((1 << (MM_MAX_ORDER + 1)) - 1));
+    buddys[n_buddys][0] = build_frame(MM_MAX_ORDER);
+    n_buddys += 1;
 }
 
 void *allocate(int size)
 {
-    // TODO: not smaller than 4096, but 2048 instead (2048 ~ 4096 -> allocate a page)
-    if (size < (1 << 11)) {     // slab allocator
+    /**
+     * Allocator used for different size:
+     *      >= 2048 --> buddy allocator
+     *      else    --> slab allocator
+    */
+    if (size < (1 << 11)) {
         return slab_allocate(size);
     }
-    // buddy allocator
-    int pfn = find_page(0, size);
-    frame_array[pfn]->flag = USED;
-    uart_puts("pfn: ");
-    uart_putints(pfn);
-    uart_puts("\n\n\n\n");
-    return MM_START + (pfn << 12);
+    return buddy_allocate(size);
+}
+
+void *buddy_allocate(int size)
+{
+    int pfn, buddy;
+    for (buddy = 0; buddy < total_buddys; buddy++) {
+        if (buddys[buddy] == NULL) {
+            allocate_one_buddy();
+        }
+        pfn = find_page(buddy, 0, size);
+
+        if (pfn != MM_MAX) {
+            break;
+        }
+    }
+
+    buddys[buddy][pfn]->flag = USED;
+    return page_address(buddy, pfn);
 }
 
 page_t *build_frame(int order)
@@ -40,10 +78,14 @@ page_t *build_frame(int order)
     return p;
 }
 
-int find_page(int index, int size)
+/**
+ * Find page of `size` in `buddy` system.
+ * Starting from `index`-th node.
+*/
+int find_page(int buddy, int index, int size)
 {
-    int flag = frame_array[index]->flag;
-    int order = frame_array[index]->order;
+    int flag = buddys[buddy][index]->flag;
+    int order = buddys[buddy][index]->order;
 
     // return order 0 page
     if (order == 0) {
@@ -60,14 +102,14 @@ int find_page(int index, int size)
     }
 
     // split current page if available
-    if (flag == AVAILABLE && !frame_array[left(index)] && !frame_array[right(index)]) {
+    if (flag == AVAILABLE && !buddys[buddy][left(index)] && !buddys[buddy][right(index)]) {
         if (index == 32) {
             uart_puts("32 got splitted!\n");
         }
-        frame_array[index]->flag = USED;
+        buddys[buddy][index]->flag = USED;
         // TODO: build left/right if NULL, else just update flag
-        frame_array[left(index)] = build_frame(order-1);
-        frame_array[right(index)] = build_frame(order-1);
+        buddys[buddy][left(index)] = build_frame(order-1);
+        buddys[buddy][right(index)] = build_frame(order-1);
     }
 
 // 不能兩邊都找，否則第一次 traverse 就會把整顆樹都切到 order 1
@@ -76,7 +118,7 @@ int find_page(int index, int size)
     uart_puts(" left: ");
     uart_putints(left(index));
     uart_puts("\n");
-    int left_pfn = find_page(left(index), size);
+    int left_pfn = find_page(buddy, left(index), size);
     if (left_pfn != MM_MAX) {
         return left_pfn;
     }
@@ -84,25 +126,41 @@ int find_page(int index, int size)
     uart_puts(" right: ");
     uart_putints(right(index));
     uart_puts("\n");
-    int right_pfn = find_page(right(index), size);
+    int right_pfn = find_page(buddy, right(index), size);
     return right_pfn;
 }
 
 void free(void *addr)
 {
+    // calculate which page (pfn) address belongs to
+    int pfn = ((long) addr - MM_START) >> 12;
+
+    // calculate which buddy address belongs to
+    int buddy = ((long) addr - MM_START - pfn * (1 << 12)) / (1 << MM_MAX_ORDER);
+
+    if (buddys[buddy][pfn]->slab_id == MM_BUDDY) {
+        buddy_free(buddy, addr);
+    } else {
+        slab_free(buddy, addr);
+    }
+}
+
+void buddy_free(int buddy, void *addr)
+{
+    // buddy system free
     int me = ((long) addr - MM_START) >> 12;
     int sibling = sibling(me);
     int parent;
 
     while (1) {
         // TODO: 還要 check me/sibling 是否存在吧？ -> 但向下 split 時一定會產生 sibling
-        if (frame_array[me]->flag == USED && frame_array[sibling]->flag == AVAILABLE) {
+        if (buddys[buddy][me]->flag == USED && buddys[buddy][sibling]->flag == AVAILABLE) {
             // merge
-            frame_array[me]->flag = AVAILABLE;
+            buddys[buddy][me]->flag = AVAILABLE;
             // update me and sibling
             me = parent(me);
             sibling = sibling(me);
-            frame_array[me]->flag = AVAILABLE;
+            buddys[buddy][me]->flag = AVAILABLE;
         } else {
             break;
         }
@@ -124,10 +182,10 @@ void init_slab_allocator(void)
         cur = NULL;
         slabs[i] = (slab_t *) kmalloc(sizeof(slab_t));
 
-        // get one page
-        pfn = find_page(0, 1 << 12);
-        frame_array[pfn]->flag = USED;
-        frame_array[pfn]->slab_id = i;
+        // TODO: assumes first buddy has at least 9 pages
+        pfn = find_page(0, 0, 1 << 12);
+        buddys[0][pfn]->flag = USED;
+        buddys[0][pfn]->slab_id = i;
         uart_puts("slab pfn: ");
         uart_putints(pfn);
         uart_puts("\n\n\n\n");
@@ -175,11 +233,11 @@ void *slab_allocate(int size)
     return chunk;
 }
 
-void slab_free(void *addr)
+void slab_free(int buddy, void *addr)
 {
     // Find page by addr, then Find slab by slab_id on page
     int pfn = ((long) addr - MM_START) >> 12;
-    page_t *p = frame_array[pfn];
+    page_t *p = buddys[buddy][pfn];
     slab_t *slab = slabs[p->slab_id];
 
     // insert chunk to freelist
