@@ -1,6 +1,7 @@
 #include "exception.h"
 #include "fdt.h"
 #include "initramfs.h"
+#include "mm.h"
 #include "ring_buffer.h"
 #include "uart.h"
 #include "shell.h"
@@ -14,6 +15,15 @@ void main()
     uart_init_buffer();
 
     fdt_traverse(initramfs_callback);
+    init_mm();
+
+    // buddy allocator
+    void *a = allocate(4096);
+    free(a);
+
+    // slab allocator
+    void *b = allocate(4);
+    free(b);
 
     char c;
     while (1) {

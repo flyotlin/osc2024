@@ -7,6 +7,7 @@ MEMORY {
   RODATA    (rx)  : ORIGIN = 0x090000, LENGTH = 64K
   DATA      (rwx) : ORIGIN = 0x098000, LENGTH = 64K
   USERSPACE (rwx) : ORIGIN = 0x500000, LENGTH = 1M
+  /* MM        (rw)  : ORIGIN = 0x10000000, LENGTH = 0x10000000 */
 }
 
 SECTIONS
@@ -32,8 +33,11 @@ SECTIONS
 
   /* 128K stack */
   __stack_top = 0x0A0000;
+
 }
 
 __bss_size = (__bss_end - __bss_start);
 __userspace_start = ORIGIN(USERSPACE);
 __userspace_end = ORIGIN(USERSPACE) + LENGTH(USERSPACE);
+__mm_start = 0x10000000;
+__mm_end = 0x20000000;
