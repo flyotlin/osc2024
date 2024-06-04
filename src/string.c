@@ -40,7 +40,7 @@ int strcmp(const char* s1, const char* s2)
 int strlen_new(const char *str)
 {
     const char *s;
-    for (s = str; *s; ++s);
+    for (s = str; *s; ++s) {}
 	return (s - str);
 }
 

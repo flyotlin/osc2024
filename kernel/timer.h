@@ -16,8 +16,8 @@ void add_timer(void);
 void update_timers(void);
 
 // static timer_t *timer_head = NULL;
-static char *messages[100];
-static int seconds[100];
-static int timer_index = 0;
+__attribute__((unused)) static char *messages[100];
+__attribute__((unused)) static int seconds[100];
+__attribute__((unused)) static int timer_index = 0;
 
 #endif

@@ -57,7 +57,7 @@ void uart_enable_tx_interrupt(void);
 
 #include "ring_buffer.h"
 #define RBUFFER_SIZE 100    // ring buffer size
-static rbuffer_t tx_buf;    // Tx ring buffer
-static rbuffer_t rx_buf;    // Rx ring buffer
+__attribute__((unused)) static rbuffer_t tx_buf;    // Tx ring buffer
+__attribute__((unused)) static rbuffer_t rx_buf;    // Rx ring buffer
 
 #endif

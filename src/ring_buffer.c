@@ -8,7 +8,6 @@ void rb_init(rbuffer_t *buf, int size)
     buf->start = 0;
     buf->end = 0;
     buf->ele = (char *) kmalloc(sizeof(char) * size);
-    return buf;
 }
 
 // Use these check on your own
@@ -31,7 +30,6 @@ void rb_write(rbuffer_t *buf, char c)
 
 char rb_read(rbuffer_t *buf)
 {
-    char c;
     int i = buf->start;
     buf->start = (i+1) % buf->size;
     return buf->ele[i];

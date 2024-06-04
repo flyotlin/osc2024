@@ -13,13 +13,13 @@ void add_timer(void)
 
     // message
     int i = 0;
-    for (i; line[i] != ' '; i++) {
+    for (i = 0; line[i] != ' '; i++) {
         message[i] = line[i];
     }
     message[i] = '\0';
 
     // second
-    for (i; i < strlen_new(line); i++) {
+    for (i = i; i < strlen_new(line); i++) {
         if (line[i] < '0' || line[i] > '9') {
             continue;
         }

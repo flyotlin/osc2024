@@ -150,7 +150,6 @@ void buddy_free(int buddy, void *addr)
     // buddy system free
     int me = ((long) addr - MM_START) >> 12;
     int sibling = sibling(me);
-    int parent;
 
     while (1) {
         // TODO: 還要 check me/sibling 是否存在吧？ -> 但向下 split 時一定會產生 sibling
@@ -193,7 +192,7 @@ void init_slab_allocator(void)
         // split page into chunks
         int chunks_count = (1 << 12) / slab_chunk_sizes[i];
         for (int k = 0; k < chunks_count; k++) {
-            chunk = MM_START + (pfn << 12) + (slab_chunk_sizes[i] * k);
+            chunk = (chunk_t *) ((long) (MM_START + (pfn << 12) + (slab_chunk_sizes[i] * k)));
             chunk->next = NULL;
 
             if (cur == NULL) {

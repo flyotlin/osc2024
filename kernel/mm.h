@@ -7,7 +7,7 @@
 #define MM_START 0x10000000
 // #define MM_END 0x12000000
 #define MM_END 0x20000000
-#define MM_MAX (1 << MM_MAX_ORDER + 2)
+#define MM_MAX ((1 << MM_MAX_ORDER) + 2)
 #define MM_BUDDY -1     // not used by slab allocator
 
 enum page_flag {
@@ -41,7 +41,7 @@ void free(void *addr);
 /**
  * start_address + (i-th buddy * buddy_size) + (pfn * page_size)
 */
-#define page_address(buddy, page) ((MM_START + (buddy * (1 << MM_MAX_ORDER)) + (page * (1 << 12))))
+#define page_address(buddy, page) ((void *) ((long) (MM_START + (buddy * (1 << MM_MAX_ORDER)) + (page * (1 << 12)))))
 
 #define left(index) ((index << 1) + 1)
 #define right(index) ((index << 1) + 2)

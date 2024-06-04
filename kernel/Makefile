@@ -24,13 +24,13 @@ KERNL_ASM_OBJS=$(KERNL_ASM:.S=.S.o)
 all: kernel8.img initramfs.cpio
 
 kernel8.img: kernel8.elf
-	$(OBJCOPY) -O binary \
+	@$(OBJCOPY) -O binary \
 		$(DIST_DIR)/kernel8.elf	\
 		$(DIST_DIR)/kernel8.img
 
 kernel8.elf: $(KERNL_ASM_OBJS) $(SRC_OBJ_FILES) $(KERNEL_OBJ_FILES)
-	mkdir -p $(DIST_DIR)
-	$(LD) -T $(LD_SCRIPT) -o $(DIST_DIR)/kernel8.elf \
+	@mkdir -p $(DIST_DIR)
+	@$(LD) -T $(LD_SCRIPT) -o $(DIST_DIR)/kernel8.elf \
 		$(KERNL_ASM_OBJS) $(SRC_OBJ_FILES) $(KERNEL_OBJ_FILES)
 
 # THIS FUCKED UP DEPS
@@ -41,21 +41,21 @@ kernel8.elf: $(KERNL_ASM_OBJS) $(SRC_OBJ_FILES) $(KERNEL_OBJ_FILES)
 # 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(SRC_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $(INCLUDE_DIR) -o $@ -c $<
+	@$(CC) $(CFLAGS) $(INCLUDE_DIR) -o $@ -c $<
 
 $(KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.c
-	$(CC) $(CFLAGS) $(INCLUDE_DIR) -o $@ -c $<
+	@$(CC) $(CFLAGS) $(INCLUDE_DIR) -o $@ -c $<
 
 $(KERNEL_DIR)/%.S.o: $(KERNEL_DIR)/%.S
-	$(CC) $(CFLAGS) $(INCLUDE_DIR) -o $@ -c $<
+	@$(CC) $(CFLAGS) $(INCLUDE_DIR) -o $@ -c $<
 
 initramfs.cpio:
-	cd ../rootfs && find . | cpio -o -H newc > ../initramfs.cpio
+	@cd ../rootfs && find . | cpio -o -H newc > ../initramfs.cpio
 
 clean:
-	rm -f start.o $(SRC_OBJ_FILES) $(KERNEL_OBJ_FILES) $(KERNL_ASM_OBJS)
-	rm -rf $(DIST_DIR)
-	rm -f ../initramfs.cpio
+	@rm -f start.o $(SRC_OBJ_FILES) $(KERNEL_OBJ_FILES) $(KERNL_ASM_OBJS)
+	@rm -rf $(DIST_DIR)
+	@rm -f ../initramfs.cpio
 
 run:
 	qemu-system-aarch64 -M raspi3b -kernel $(DIST_DIR)/kernel8.img -display none -d in_asm
