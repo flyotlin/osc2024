@@ -59,11 +59,12 @@ static char* command_descriptions[] = {
     "free memory",
 };
 
-void do_cmd(const char* line)
+void do_cmd(char* line)
 {
     int size = sizeof(command_funcs) / sizeof(command_funcs[0]);
+    char *cmd = strtok(line, ' ');
     for (int i = 0; i < size; i++) {
-        if (strcmp(line, commands[i]) == 0) {
+        if (strcmp(cmd, commands[i]) == 0) {
             command_funcs[i](line);
             return;
         }
@@ -127,10 +128,22 @@ void cmd_execute(const char *line)
 
 void cmd_malloc(const char *line)
 {
-
+    char *s = strtok(NULL, ' ');
+    if (!s) {
+        uart_puts("Usage: malloc [size]\n");
+        return;
+    }
+    int size = atoi(s);
+    malloc(size);
 }
 
 void cmd_free(const char *line)
 {
-    
+    char *s = strtok(NULL, ' ');
+    if (!s) {
+        uart_puts("Usage: free [addr]\n");
+        return;
+    }
+    long addr = atoi(s);
+    free((void *) addr);
 }

@@ -4,7 +4,7 @@
 #define MAX_GETLINE_LEN 0x20
 
 void shell_start(void);
-void do_cmd(const char*);
+void do_cmd(char*);
 
 typedef void (*cmd_t)(const char *line);    // line: Original string
 void cmd_help(const char *line);
