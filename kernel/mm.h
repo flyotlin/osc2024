@@ -31,10 +31,12 @@ void init_mm(void);
 // release all available memory into buddy system
 void init_buddy_allocator(void);
 void allocate_one_buddy(void);
+void *mm_allocate(int size);
 void *buddy_allocate(int size);
 void buddy_free(int buddy, void *addr);
 page_t *build_frame(int order);
 int find_page(int buddy, int index, int size);
+void mm_free(void *addr);
 
 /**
  * start_address + (i-th buddy * buddy_size) + (pfn * page_size)
@@ -74,10 +76,5 @@ void slab_free(int buddy, void *addr);
 // #define RESERVED_MEMBLOCK   2
 
 // TODO: what is zone?
-
-__attribute__((unused)) static page_t ***buddys;    // array of frame_array (page_t **)
-__attribute__((unused)) static page_t **frame_array;
-__attribute__((unused)) static int total_buddys = 0;
-__attribute__((unused)) static int n_buddys = 0;    // number of buddys
 
 #endif
