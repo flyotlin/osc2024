@@ -8,5 +8,6 @@ int hex_atoi(const char *, int);
 int getdelim(char **, int, int);
 int getline(char **, int);
 void *memcpy(void *, const void *, int);
+char *strtok(char *s, const char delim);
 
 #endif

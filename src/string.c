@@ -125,3 +125,45 @@ void *memcpy(void *dest, const void *src, int n)
 
     return dest;
 }
+
+static char *olds;
+/**
+ * Extract tokens from strings, delimited by `delim`.
+ * 
+ * Arguments:
+ *  - s: string to be tokenized
+ *  - delim: delimiter
+*/
+char *strtok(char *s, const char delim)
+{
+    char *token;
+
+    if (s == NULL) {
+        s = olds;
+    }
+
+    if (s == NULL || *s == '\0') {
+        return NULL;
+    }
+
+    int i;
+    for (i = 0; i < strlen_new(s); i++) {
+        if (s[i] == delim) {
+            break;
+        }
+    }
+
+    if (i == strlen_new(s)) {
+        olds = NULL;
+    } else {
+        olds = s + i + 1;
+    }
+
+    token = (char *) kmalloc(sizeof(char) * (i + 1));
+    int j;
+    for (j = 0; j < i; j++) {
+        token[j] = s[j];
+    }
+    token[j] = '\0';
+    return token;
+}
