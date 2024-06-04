@@ -20,3 +20,31 @@ void *kmalloc(unsigned int size)
     heap_end += size;
     return (void *) address;
 }
+
+void *malloc(int size)
+{
+    /**
+     * Allocator used for different size:
+     *      >= 2048 --> buddy allocator
+     *      else    --> slab allocator
+    */
+    if (size < (1 << 11)) {
+        return slab_allocate(size);
+    }
+    return buddy_allocate(size);
+}
+
+void free(void *addr)
+{
+    // calculate which page (pfn) address belongs to
+    int pfn = ((long) addr - MM_START) >> 12;
+
+    // calculate which buddy address belongs to
+    int buddy = ((long) addr - MM_START - pfn * (1 << 12)) / (1 << MM_MAX_ORDER);
+
+    if (buddys[buddy][pfn]->slab_id == MM_BUDDY) {
+        buddy_free(buddy, addr);
+    } else {
+        slab_free(buddy, addr);
+    }
+}

@@ -17,14 +17,6 @@ void main()
     fdt_traverse(initramfs_callback);
     init_mm();
 
-    // buddy allocator
-    void *a = allocate(4096);
-    free(a);
-
-    // slab allocator
-    void *b = allocate(4);
-    free(b);
-
     char c;
     while (1) {
         c = uart_async_getc();
