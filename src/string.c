@@ -45,7 +45,7 @@ int strlen_new(const char *str)
 }
 
 /**
- * Convert char array to int.
+ * Convert char array (in Hexidecimal) to int.
  * Only works with number >= 0
  * 
  * Arguments:
@@ -68,6 +68,30 @@ int hex_atoi(const char *s, int len)
             n = c - 'a' + 10;
         }
         num = 16 * num + n;
+    }
+
+    return num;
+}
+
+/**
+ * Convert char array (in Decimal) to int.
+ * Only works with number >= 0
+ * 
+ * Arguments:
+ *      - s: char array
+*/
+int atoi(const char *s)
+{
+    int num = 0;
+    int n = 0;
+    char c;
+
+    for (int i = 0; i < strlen_new(s); i++) {
+        c = s[i];
+        if (c >= '0' && c <= '9') {
+            n = c - '0';
+        }
+        num = 10 * num + n;
     }
 
     return num;
