@@ -1,5 +1,6 @@
 #include "malloc.h"
 #include "uart.h"
+#include "mm.h"
 
 static char *heap_end = (char *) HEAP_START;
 void *kmalloc(unsigned int size)

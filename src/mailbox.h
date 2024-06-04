@@ -27,7 +27,7 @@
 #define MAILBOX_END_TAG             0x00000000
 
 int mailbox_exec(unsigned int);
-void get_board_revision(void);
-void get_arm_memory(void);
+void get_board_revision(const char *line);
+void get_arm_memory(const char *line);
 
 #endif

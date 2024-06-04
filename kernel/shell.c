@@ -19,7 +19,7 @@ void shell_start()
 }
 
 // Define Shell Commands
-static cmt_t command_funcs[] = {
+static cmd_t command_funcs[] = {
     cmd_help,
     cmd_hello,
     cmd_reboot,
@@ -64,15 +64,15 @@ void do_cmd(const char* line)
     int size = sizeof(command_funcs) / sizeof(command_funcs[0]);
     for (int i = 0; i < size; i++) {
         if (strcmp(line, commands[i]) == 0) {
-            command_funcs[i]();
+            command_funcs[i](line);
             return;
         }
     }
-    cmd_default();
+    cmd_default(line);
     return;
 }
 
-void cmd_help()
+void cmd_help(const char *line)
 {
     int size = sizeof(command_descriptions) / sizeof(command_descriptions[0]);
     for (int i = 0; i < size; i++) {
@@ -83,12 +83,12 @@ void cmd_help()
     }
 }
 
-void cmd_hello()
+void cmd_hello(const char *line)
 {
     uart_puts("Hello World!\n");
 }
 
-void cmd_reboot()
+void cmd_reboot(const char *line)
 {
     uart_puts("Reboot!\n");
 
@@ -100,7 +100,7 @@ void cmd_reboot()
     *PM_RSTC = PM_WDOG_MAGIC | PM_RSTC_FULLRST;
 }
 
-void cmd_default()
+void cmd_default(const char *line)
 {
     uart_puts("command not found\n");
 }
@@ -108,7 +108,7 @@ void cmd_default()
 /**
  * Execute binary executable from initramfs in userspace (EL0).
 */
-void cmd_execute(void)
+void cmd_execute(const char *line)
 {
     char *filename = NULL;
     uart_puts("Filename: ");
@@ -125,12 +125,12 @@ void cmd_execute(void)
     el1_to_el0();
 }
 
-void cmd_malloc(void)
+void cmd_malloc(const char *line)
 {
 
 }
 
-void cmd_free(void)
+void cmd_free(const char *line)
 {
     
 }

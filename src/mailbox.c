@@ -22,7 +22,7 @@ int mailbox_exec(unsigned int channel)
     return msg[1] == MAILBOX_RESPONSE;
 }
 
-void get_board_revision()
+void get_board_revision(const char *line)
 {
     msg[0] = 7*4;
     msg[1] = MAILBOX_REQUEST;
@@ -41,7 +41,7 @@ void get_board_revision()
     }
 }
 
-void get_arm_memory()
+void get_arm_memory(const char *line)
 {
     msg[0] = 8*4;
     msg[1] = MAILBOX_REQUEST;

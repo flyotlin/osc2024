@@ -6,13 +6,13 @@
 void shell_start(void);
 void do_cmd(const char*);
 
-typedef void (*cmt_t)();
-void cmd_help(void);
-void cmd_hello(void);
-void cmd_reboot(void);
-void cmd_default(void);
-void cmd_execute(void);
-void cmd_malloc(void);
-void cmd_free(void);
+typedef void (*cmd_t)(const char *line);    // line: Original string
+void cmd_help(const char *line);
+void cmd_hello(const char *line);
+void cmd_reboot(const char *line);
+void cmd_default(const char *line);
+void cmd_execute(const char *line);
+void cmd_malloc(const char *line);
+void cmd_free(const char *line);
 
 #endif

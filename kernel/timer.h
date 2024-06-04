@@ -10,7 +10,7 @@
 //     struct timer *next;
 // } timer_t;
 
-void add_timer(void);
+void add_timer(const char *line);
 // timer_t *init_timer(char *msg, int second);
 // void append_timer(timer_t *timer);
 void update_timers(void);

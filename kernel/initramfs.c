@@ -44,7 +44,7 @@ void parse_initramfs(int addr)
     uart_puts("initramfs parse complete :D\n");
 }
 
-void list_initramfs()
+void list_initramfs(const char *line)
 {
     cpio_meta_t *cur = head;
     while (cur != NULL) {
@@ -71,14 +71,14 @@ cpio_meta_t *find_initramfs(const char *s)
     return NULL;
 }
 
-void cat_initramfs()
+void cat_initramfs(const char *line)
 {
     uart_puts("Filename: ");
 
-    char *line = NULL;
-    getline(&line, 0x20);
+    char *l = NULL;
+    getline(&l, 0x20);
 
-    cpio_meta_t *f = find_initramfs(line);
+    cpio_meta_t *f = find_initramfs(l);
     if (f == NULL) {
         return;
     }

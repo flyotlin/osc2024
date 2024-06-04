@@ -3,27 +3,27 @@
 #include "timer.h"
 #include "uart.h"
 
-void add_timer(void)
+void add_timer(const char *line)
 {
-    char *line = NULL;
-    getline(&line, 0x20);
+    char *l = NULL;
+    getline(&l, 0x20);
 
     char *message = (char *) kmalloc(sizeof(char) * 50);
     int second = 0;
 
     // message
     int i = 0;
-    for (i = 0; line[i] != ' '; i++) {
-        message[i] = line[i];
+    for (i = 0; l[i] != ' '; i++) {
+        message[i] = l[i];
     }
     message[i] = '\0';
 
     // second
-    for (i = i; i < strlen_new(line); i++) {
-        if (line[i] < '0' || line[i] > '9') {
+    for (i = i; i < strlen_new(l); i++) {
+        if (l[i] < '0' || l[i] > '9') {
             continue;
         }
-        second = 10 * second + (line[i] - '0');
+        second = 10 * second + (l[i] - '0');
     }
 
     messages[timer_index] = message;
