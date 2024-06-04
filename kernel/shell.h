@@ -12,5 +12,7 @@ void cmd_hello(void);
 void cmd_reboot(void);
 void cmd_default(void);
 void cmd_execute(void);
+void cmd_malloc(void);
+void cmd_free(void);
 
 #endif

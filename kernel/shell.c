@@ -2,6 +2,7 @@
 #include "initramfs.h"
 #include "mailbox.h"
 #include "malloc.h"
+#include "mm.h"
 #include "shell.h"
 #include "string.h"
 #include "timer.h"
@@ -28,6 +29,8 @@ static cmt_t command_funcs[] = {
     cat_initramfs,
     cmd_execute,
     add_timer,
+    cmd_malloc,
+    cmd_free,
 };
 static char* commands[] = {
     "help",
@@ -39,6 +42,8 @@ static char* commands[] = {
     "cat",
     "exec",
     "setTimeout",
+    "malloc",
+    "free",
 };
 static char* command_descriptions[] = {
     "print this help menu",
@@ -50,6 +55,8 @@ static char* command_descriptions[] = {
     "cat a file",
     "execute a program in userspace (EL0)",
     "set timeout",
+    "allocate memory",
+    "free memory",
 };
 
 void do_cmd(const char* line)
@@ -116,4 +123,14 @@ void cmd_execute(void)
     memcpy(&__userspace_start, f->content, f->filesize);    // strlen_new() 會壞掉！因為開頭是 0
 
     el1_to_el0();
+}
+
+void cmd_malloc(void)
+{
+
+}
+
+void cmd_free(void)
+{
+    
 }
