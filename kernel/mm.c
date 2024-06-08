@@ -134,10 +134,8 @@ void mm_free(void *addr)
 {
     // calculate which page (pfn) address belongs to
     int pfn = ((long) addr - MM_START) >> 12;
-
     // calculate which buddy address belongs to
     int buddy = ((long) addr - MM_START - pfn * (1 << 12)) / (1 << MM_MAX_ORDER);
-
     if (buddys[buddy][pfn]->slab_id == MM_BUDDY) {
         buddy_free(buddy, addr);
     } else {
@@ -152,14 +150,11 @@ void buddy_free(int buddy, void *addr)
     int sibling = sibling(me);
 
     while (1) {
-        // TODO: 還要 check me/sibling 是否存在吧？ -> 但向下 split 時一定會產生 sibling
-        if (buddys[buddy][me]->flag == USED && buddys[buddy][sibling]->flag == AVAILABLE) {
-            // merge
-            buddys[buddy][me]->flag = AVAILABLE;
-            // update me and sibling
+        buddys[buddy][me]->flag = AVAILABLE;
+        if (buddys[buddy][sibling]->flag == AVAILABLE) {
+            // merge -> update me and sibling
             me = parent(me);
             sibling = sibling(me);
-            buddys[buddy][me]->flag = AVAILABLE;
         } else {
             break;
         }
@@ -182,6 +177,9 @@ void init_slab_allocator(void)
         slabs[i] = (slab_t *) kmalloc(sizeof(slab_t));
 
         // TODO: assumes first buddy has at least 9 pages
+        uart_puts("init slab-");
+        uart_putints(slab_chunk_sizes[i]);
+        uart_puts(" allocator:\n");
         pfn = find_page(0, 0, 1 << 12);
         buddys[0][pfn]->flag = USED;
         buddys[0][pfn]->slab_id = i;
@@ -222,8 +220,6 @@ void *slab_allocate(int size)
     uart_putints(slab_chunk_sizes[i]);
     uart_puts("\n");
 
-    uart_putlong((long) slabs[i]->freelist);
-    uart_puts("\n");
     // request page from buddy if no free chunk
     chunk_t *chunk = slabs[i]->freelist;
     slabs[i]->freelist = chunk->next;
