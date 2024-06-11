@@ -34,6 +34,9 @@ void allocate_one_buddy()
 
     // allocate space for one buddy (2^(MM_MAX_ORDER+1)-1 page frames)
     buddys[n_buddys] = (page_t **) kmalloc(sizeof(page_t *) * ((1 << (MM_MAX_ORDER + 1)) - 1));
+    for (int i = 0; i < (1 << (MM_MAX_ORDER + 1)) - 1; i++) {
+        buddys[n_buddys][i] = 0;
+    }
     buddys[n_buddys][0] = build_frame(MM_MAX_ORDER);
     n_buddys += 1;
 }
@@ -102,10 +105,7 @@ int find_page(int buddy, int index, int size)
     }
 
     // split current page if available
-    if (flag == AVAILABLE && !buddys[buddy][left(index)] && !buddys[buddy][right(index)]) {
-        if (index == 32) {
-            uart_puts("32 got splitted!\n");
-        }
+    if (!buddys[buddy][left(index)] && !buddys[buddy][right(index)]) {
         buddys[buddy][index]->flag = USED;
         // TODO: build left/right if NULL, else just update flag
         buddys[buddy][left(index)] = build_frame(order-1);
@@ -150,6 +150,7 @@ void buddy_free(int buddy, void *addr)
     int sibling = sibling(me);
 
     while (1) {
+        // 如果 sibling not available, flag 不會被改變欸
         buddys[buddy][me]->flag = AVAILABLE;
         if (buddys[buddy][sibling]->flag == AVAILABLE) {
             // merge -> update me and sibling
