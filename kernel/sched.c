@@ -1,4 +1,6 @@
+#include "initramfs.h"
 #include "malloc.h"
+#include "mm.h"
 #include "sched.h"
 #include "shell.h"
 #include "string.h"
@@ -76,10 +78,30 @@ void kill_zombies()
     }
 }
 
+// Run different program in EL0
+int _exec(const char *name, char *const argv[])
+{
+    thread_t *t = current_thread;
+
+    cpio_meta_t *m = find_initramfs(name);
+    t->code = buddy_allocate(m->filesize);
+    memcpy(t->code, m->content, m->filesize);
+    t->codesize = m->filesize;
+
+    t->ctx.lr = t->code;
+
+    asm("msr elr_el1, %0\t\n"
+        "msr sp_el0, %1\t\n"
+        "mov sp, %2\t\n" : : "r"(t->code), "r"(t->user_sp + THREAD_STACK_SIZE), "r"(t->kernel_sp + THREAD_STACK_SIZE));
+    asm("mov x0, 0x000\t\n"
+        "msr spsr_el1, x0\t\n");
+    asm("eret\t\n");
+}
+
 /**
  * 
 */
-int fork(void)
+int _fork(void)
 {
     // critical section, cannot be interrupted
     thread_t *t = create_thread(current_thread->code, current_thread->codesize);

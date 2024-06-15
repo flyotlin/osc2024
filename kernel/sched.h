@@ -58,7 +58,8 @@ thread_t *create_thread(void *code, int codesize);
 void schedule(void);
 void _exit(void);
 void kill_zombies();
-int fork(void);
+int _exec(const char *name, char *const argv[]);
+int _fork(void);
 
 thread_t *get_current_thread(void);
 void set_current_thread(thread_t *thread);
