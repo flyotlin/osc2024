@@ -36,6 +36,7 @@ thread_t *create_thread(void *code, int codesize)
     thread->ctx.fp = thread->kernel_sp;
 
     thread_list_add(thread);
+    return thread;
 }
 
 void schedule()
