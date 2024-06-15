@@ -16,6 +16,7 @@ void _init_core_timer(void);
 void handle_exception(trapframe_t *trapframe);
 void handle_interrupt(trapframe_t *trapframe);
 void handle_current_el_irq(void);
+void _handle_svc1(void);
 void _handle_timer(void);
 
 // exception level

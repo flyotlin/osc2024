@@ -32,26 +32,16 @@ void _init_core_timer(void)
 
 void handle_exception(trapframe_t *trapframe)
 {
-    uart_puts("exception raised!\n");
+    // https://developer.arm.com/documentation/ddi0595/2020-12/AArch64-Registers/ESR-EL1--Exception-Syndrome-Register--EL1-
+    uint64_t esr_el1;
+    asm("mrs %0, esr_el1" : "=r"(esr_el1)); //
 
-    long spsr_el1, elr_el1, esr_el1;
-    asm("mrs %0, spsr_el1" : "=r"((long) spsr_el1));
-    asm("mrs %0, elr_el1" : "=r"((long) elr_el1));
-    asm("mrs %0, esr_el1" : "=r"((long) esr_el1));
-
-    uart_puts("spsr_el1: ");
-    uart_hex(spsr_el1);
-    uart_puts("\n");
-
-    uart_puts("elr_el1: ");
-    uart_hex(elr_el1);
-    uart_puts("\n");
-
-    uart_puts("esr_el1: ");
-    uart_hex(esr_el1);
-    uart_puts("\n");
-
-    uart_puts("\n");
+    int svc_number = esr_el1 & 0xFFFF;  // TODO: why?
+    if (svc_number == 0) {
+        syscall_handler(trapframe);
+    } else if (svc_number == 1) {
+        _handle_svc1();
+    }
 }
 
 void handle_interrupt(trapframe_t *trapframe)
@@ -93,6 +83,30 @@ void handle_current_el_irq(void)
     }
 
     unmask_interrupt();
+}
+
+void _handle_svc1()
+{
+    uart_puts("exception raised!\n");
+
+    long spsr_el1, elr_el1, esr_el1;
+    asm("mrs %0, spsr_el1" : "=r"((long) spsr_el1));
+    asm("mrs %0, elr_el1" : "=r"((long) elr_el1));
+    asm("mrs %0, esr_el1" : "=r"((long) esr_el1));
+
+    uart_puts("spsr_el1: ");
+    uart_hex(spsr_el1);
+    uart_puts("\n");
+
+    uart_puts("elr_el1: ");
+    uart_hex(elr_el1);
+    uart_puts("\n");
+
+    uart_puts("esr_el1: ");
+    uart_hex(esr_el1);
+    uart_puts("\n");
+
+    uart_puts("\n");
 }
 
 // https://developer.arm.com/documentation/ddi0601/2022-03/External-Registers/CNTP-TVAL--Counter-timer-Physical-Timer-TimerValue

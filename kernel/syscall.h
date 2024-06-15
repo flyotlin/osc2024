@@ -37,4 +37,7 @@ typedef struct {
     uint64_t x30;
 } trapframe_t;
 
+void syscall_handler(trapframe_t *trapframe_t);
+int getpid();
+
 #endif
