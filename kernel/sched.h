@@ -33,6 +33,16 @@ typedef struct thread {
     thread_state_t state;
     thread_ctx_t ctx;
 
+    /**
+     * A thread can not only execute a piece of code in kernel,
+     * but also execute a program.
+     * 
+     * If it's a piece of code, codesize = 0,
+     * else, codesize = sizeof(program).
+    */
+    void *code;
+    void *codesize;
+
     void *user_sp;
     void *kernel_sp;
 
@@ -45,7 +55,9 @@ typedef struct thread {
 void init_sched(void);
 thread_t *create_thread(void *code);
 void schedule(void);
+int fork(void);
 
+thread_t *get_current_thread(void);
 void set_current_thread(thread_t *thread);
 static inline void set_current_ctx(thread_ctx_t *ctx) {
     __asm__ __volatile__( "msr tpidr_el1, %0" : : "r"(ctx));

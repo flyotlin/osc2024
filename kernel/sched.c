@@ -1,21 +1,16 @@
 #include "sched.h"
+#include "shell.h"
 #include "malloc.h"
 #include "uart.h"
 
 thread_t *thread_list;
 thread_t *current_thread;
-int max_tid = 0;
+int max_tid;    // maximum tid that has been distributed
 
 void init_sched(void)
 {
     thread_list = NULL;
-
-    create_thread(idle);
-
-    for (int i = 0; i < 10; i++) {
-        uart_puts("hi 1\n");
-    }
-    schedule();
+    max_tid = 0;
 }
 
 thread_t *create_thread(void *code)
@@ -26,6 +21,9 @@ thread_t *create_thread(void *code)
 
     thread->next = NULL;
     thread->prev = NULL;
+
+    thread->code = code;
+    thread->codesize = 0;
 
     thread->kernel_sp = malloc(THREAD_STACK_SIZE);
     thread->user_sp = malloc(THREAD_STACK_SIZE);
@@ -58,6 +56,15 @@ void schedule()
     switch_to(&prev->ctx, &next->ctx);
 }
 
+int fork(void)
+{
+}
+
+thread_t *get_current_thread(void)
+{
+    return current_thread;
+}
+
 void set_current_thread(thread_t *thread)
 {
     current_thread = thread;
@@ -73,29 +80,4 @@ void thread_list_add(thread_t *item)
     item->next = thread_list;
     thread_list->prev = item;
     thread_list = item;
-}
-
-int forked = 0;
-void idle()
-{
-    while (1) {
-        for (int i = 0; i < 10; i++) {
-            uart_puts("hi 2\n");
-        }
-        if (forked == 0) {
-            forked = 1;
-            create_thread(idle2);
-        }
-        schedule();
-    }
-}
-
-void idle2()
-{
-    while (1) {
-        for (int i = 0; i < 5; i++) {
-            uart_puts("hi 3\n");
-        }
-        schedule();
-    }
 }
