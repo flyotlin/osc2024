@@ -42,6 +42,29 @@ void uart_init_buffer(void)
     rb_init(&rx_buf, RBUFFER_SIZE);
 }
 
+int _uart_read(char buf[], int size)
+{
+    for (int i = 0; i < size; i++) {
+        buf[i] = uart_getc();
+    }
+    return size;
+}
+
+int _uart_write(const char buf[], int size)
+{
+    int i;
+    for (i = 0; i < size; i++) {
+        if (buf[i] == '\n') {
+            uart_send('\r');
+        }
+        uart_send(buf[i]);
+        if (buf[i] == '\0') {
+            break;
+        }
+    }
+    return i+1;
+}
+
 void uart_send(unsigned int c) {
     while (!((*UART_AUX_MU_LSR_REG) & 32)) {
         asm volatile("nop");

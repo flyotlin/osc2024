@@ -34,6 +34,8 @@
 
 void uart_init(void);   // initialization
 void uart_init_buffer(void);    // initialize uart w/r buffer
+int _uart_read(char buf[], int size);
+int _uart_write(const char buf[], int size);
 void uart_send(unsigned int);   // send character over seiral line
 void uart_puts(char*);   // write data
 char uart_getc(void);   // read data
