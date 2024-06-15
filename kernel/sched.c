@@ -1,6 +1,7 @@
+#include "malloc.h"
 #include "sched.h"
 #include "shell.h"
-#include "malloc.h"
+#include "string.h"
 #include "uart.h"
 
 thread_t *thread_list;
@@ -13,7 +14,7 @@ void init_sched(void)
     max_tid = 0;
 }
 
-thread_t *create_thread(void *code)
+thread_t *create_thread(void *code, int codesize)
 {
     thread_t *thread = (thread_t *) malloc(sizeof(thread_t));
     thread->tid = max_tid++;
@@ -23,7 +24,7 @@ thread_t *create_thread(void *code)
     thread->prev = NULL;
 
     thread->code = code;
-    thread->codesize = 0;
+    thread->codesize = codesize;
 
     thread->kernel_sp = malloc(THREAD_STACK_SIZE);
     thread->user_sp = malloc(THREAD_STACK_SIZE);
@@ -56,8 +57,41 @@ void schedule()
     switch_to(&prev->ctx, &next->ctx);
 }
 
+void _exit(void)
+{
+    current_thread->state = thread_dead;
+    schedule();
+}
+
+void kill_zombies()
+{
+    thread_t *cur = thread_list;
+    while (cur) {
+        if (cur->state == thread_dead) {
+            // TODO: free stack
+            free(cur->user_sp);
+            free(cur->kernel_sp);
+        }
+        cur = cur->next;
+    }
+}
+
+/**
+ * 
+*/
 int fork(void)
 {
+    // critical section, cannot be interrupted
+    thread_t *t = create_thread(current_thread->code, current_thread->codesize);
+
+    // copy stack content from current_thread
+    memcpy(t->kernel_sp, current_thread->kernel_sp, THREAD_STACK_SIZE);
+    memcpy(t->user_sp, current_thread->user_sp, THREAD_STACK_SIZE);
+
+    // copy code
+        // No, because share code, only exec would load new code
+
+    
 }
 
 thread_t *get_current_thread(void)

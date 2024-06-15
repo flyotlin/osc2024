@@ -7,6 +7,7 @@
 typedef enum {
     thread_running,
     thread_waiting,
+    thread_dead,
 } thread_state_t;
 
 // thread context
@@ -41,7 +42,7 @@ typedef struct thread {
      * else, codesize = sizeof(program).
     */
     void *code;
-    void *codesize;
+    int codesize;
 
     void *user_sp;
     void *kernel_sp;
@@ -53,8 +54,10 @@ typedef struct thread {
 #define THREAD_STACK_SIZE 0x1000
 
 void init_sched(void);
-thread_t *create_thread(void *code);
+thread_t *create_thread(void *code, int codesize);
 void schedule(void);
+void _exit(void);
+void kill_zombies();
 int fork(void);
 
 thread_t *get_current_thread(void);
