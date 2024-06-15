@@ -30,7 +30,7 @@ void _init_core_timer(void)
     asm("str x0, [x1]");
 }
 
-void handle_exception(void)
+void handle_exception(trapframe_t *trapframe)
 {
     uart_puts("exception raised!\n");
 
@@ -54,7 +54,7 @@ void handle_exception(void)
     uart_puts("\n");
 }
 
-void handle_interrupt(void)
+void handle_interrupt(trapframe_t *trapframe)
 {
     if (*CORE0_TIMER_IRQ_SRC & 0b10) {   // Ref (p.16): https://datasheets.raspberrypi.com/bcm2836/bcm2836-peripherals.pdf
         _handle_timer();

@@ -52,6 +52,7 @@ default_handler:
 
 interrupt_handler:
     save_all
+    mov x0, sp
     bl handle_interrupt
     load_all
     eret
@@ -65,6 +66,7 @@ cur_el_irq_handler:
 // FIXME: infinite loop now
 exception_handler:
     save_all
+    mov x0, sp
     bl handle_exception     // 不用 bl 會壞掉
     load_all
     eret
