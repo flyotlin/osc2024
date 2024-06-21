@@ -3,6 +3,7 @@
 
 // #include "list.h"
 #include "type.h"
+#include "syscall.h"
 
 typedef enum {
     thread_running,
@@ -59,7 +60,8 @@ void schedule(void);
 void _exit(void);
 void kill_zombies();
 int _exec(const char *name, char *const argv[]);
-int _fork(void);
+int _fork(trapframe_t *trapframe);
+void _kill(int pid);
 
 thread_t *get_current_thread(void);
 void set_current_thread(thread_t *thread);

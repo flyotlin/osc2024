@@ -1,4 +1,5 @@
 #include "exception.h"
+#include "sched.h"
 #include "timer.h"
 #include "uart.h"
 
@@ -35,12 +36,23 @@ void handle_exception(trapframe_t *trapframe)
     // https://developer.arm.com/documentation/ddi0595/2020-12/AArch64-Registers/ESR-EL1--Exception-Syndrome-Register--EL1-
     uint64_t esr_el1;
     asm("mrs %0, esr_el1" : "=r"(esr_el1)); //
+    // uart_puts("exception\n");
+    // fork 完之後，會收到一些奇怪的 exception
+
+    thread_t *cur = get_current_thread();
 
     int svc_number = esr_el1 & 0xFFFF;  // TODO: why?
     if (svc_number == 0) {
+        // if (cur->tid == 1) {
+        //     uart_puts("syscall\n");
+        // }
+        // uart_puts("syscall raised!\n");
         syscall_handler(trapframe);
     } else if (svc_number == 1) {
+        // uart_puts("svc 1\n");
         _handle_svc1();
+    } else {
+        // uart_puts("others\n");
     }
 }
 
@@ -48,6 +60,8 @@ void handle_interrupt(trapframe_t *trapframe)
 {
     if (*CORE0_TIMER_IRQ_SRC & 0b10) {   // Ref (p.16): https://datasheets.raspberrypi.com/bcm2836/bcm2836-peripherals.pdf
         _handle_timer();
+
+        schedule();
     }
 }
 

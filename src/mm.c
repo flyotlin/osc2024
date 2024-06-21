@@ -113,19 +113,19 @@ int find_page(int buddy, int index, int size)
     }
 
 // 不能兩邊都找，否則第一次 traverse 就會把整顆樹都切到 order 1
-    // find left and right
-    // uart_putints(index);
-    // uart_puts(" left: ");
-    // uart_putints(left(index));
-    // uart_puts("\n");
+//     find left and right
+    uart_putints(index);
+    uart_puts(" left: ");
+    uart_putints(left(index));
+    uart_puts("\n");
     int left_pfn = find_page(buddy, left(index), size);
     if (left_pfn != MM_MAX) {
         return left_pfn;
     }
-    // uart_putints(index);
-    // uart_puts(" right: ");
-    // uart_putints(right(index));
-    // uart_puts("\n");
+    uart_putints(index);
+    uart_puts(" right: ");
+    uart_putints(right(index));
+    uart_puts("\n");
     int right_pfn = find_page(buddy, right(index), size);
     return right_pfn;
 }
@@ -178,15 +178,15 @@ void init_slab_allocator(void)
         slabs[i] = (slab_t *) kmalloc(sizeof(slab_t));
 
         // TODO: assumes first buddy has at least 9 pages
-        // uart_puts("init slab-");
-        // uart_putints(slab_chunk_sizes[i]);
-        // uart_puts(" allocator:\n");
+        uart_puts("init slab-");
+        uart_putints(slab_chunk_sizes[i]);
+        uart_puts(" allocator:\n");
         pfn = find_page(0, 0, 1 << 12);
         buddys[0][pfn]->flag = USED;
         buddys[0][pfn]->slab_id = i;
-        // uart_puts("slab pfn: ");
-        // uart_putints(pfn);
-        // uart_puts("\n\n\n\n");
+        uart_puts("slab pfn: ");
+        uart_putints(pfn);
+        uart_puts("\n\n\n\n");
 
         // split page into chunks
         int chunks_count = (1 << 12) / slab_chunk_sizes[i];
@@ -217,9 +217,9 @@ void *slab_allocate(int size)
     }
     i += 1;
 
-    // uart_puts("allocate chunk from slab-");
-    // uart_putints(slab_chunk_sizes[i]);
-    // uart_puts("\n");
+    uart_puts("allocate chunk from slab-");
+    uart_putints(slab_chunk_sizes[i]);
+    uart_puts("\n");
 
     // request page from buddy if no free chunk
     chunk_t *chunk = slabs[i]->freelist;

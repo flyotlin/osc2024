@@ -24,7 +24,11 @@ void *kmalloc(unsigned int size)
 
 void *malloc(int size)
 {
-    return mm_allocate(size);
+    void *addr = mm_allocate(size);
+    uart_puts("addr: ");
+    uart_putlong(addr);
+    uart_puts("\n");
+    return addr;
 }
 
 void free(void *addr)

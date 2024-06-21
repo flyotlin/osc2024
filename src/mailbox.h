@@ -26,7 +26,10 @@
 #define MAILBOX_GET_ARM_MEMORY      0x00010005
 #define MAILBOX_END_TAG             0x00000000
 
-int mailbox_exec(unsigned int);
+#include "type.h"
+
+int mailbox_exec(unsigned int channel, unsigned int *msg);
+int _mbox_exec(trapframe_t *trapframe, unsigned int channel, unsigned int *msg);
 void get_board_revision(const char *line);
 void get_arm_memory(const char *line);
 

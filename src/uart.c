@@ -1,3 +1,4 @@
+#include "sched.h"
 #include "uart.h"
 
 void uart_init()
@@ -45,7 +46,24 @@ void uart_init_buffer(void)
 int _uart_read(char buf[], int size)
 {
     for (int i = 0; i < size; i++) {
-        buf[i] = uart_getc();
+        // check status in LSR
+        while (!((*UART_AUX_MU_LSR_REG) & 1)) {
+            asm volatile("nop");
+            // schedule();
+        }
+
+        // read data from IO
+        char c;
+        c = (char) (*UART_AUX_MU_IO_REG);
+        // return c == '\r' ? '\n' : c;
+        if (c == '\r') {
+            c = '\n';
+        }
+
+        buf[i] = c;
+
+        // buf[i] = uart_getc();
+        // buf[i] = uart_async_getc();
     }
     return size;
 }

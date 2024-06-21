@@ -8,17 +8,17 @@ ROOTFS=../../rootfs
 
 .PHONY: clean
 
-all: p1.img
+all: p2.img
 
-p1.img: p1.elf
-	$(OBJCOPY) -O binary p1.elf p1.img
-	cp p1.img $(ROOTFS)/p1.img
+p2.img: p2.elf
+	$(OBJCOPY) -O binary p2.elf p2.img
+	cp p2.img $(ROOTFS)/p2.img
 
-p1.elf:
+p2.elf:
 	$(CC) $(CFLAGS) -o syscall.o -c ../shared/syscall.S
 	$(CC) $(CFLAGS) -o start.o -c start.S
 	$(CC) $(CFLAGS) -o main.o -c main.c
-	$(LD) -T $(LD_SCRIPT) -o p1.elf start.o syscall.o main.o
+	$(LD) -T $(LD_SCRIPT) -o p2.elf start.o syscall.o main.o
 
 clean:
-	@rm -rf start.o p1.img p1.elf
+	@rm -rf start.o p2.img p2.elf

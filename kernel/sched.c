@@ -33,7 +33,7 @@ thread_t *create_thread(void *code, int codesize)
 
     thread->ctx.lr = code;
     thread->ctx.sp = thread->kernel_sp + THREAD_STACK_SIZE; // stack from high to low
-    thread->ctx.fp = thread->kernel_sp;
+    thread->ctx.fp = thread->kernel_sp + THREAD_STACK_SIZE;
 
     thread_list_add(thread);
     return thread;
@@ -55,6 +55,12 @@ void schedule()
             next = thread_list;
         }
     } while (next->state != thread_running);
+
+    // uart_puts("schedule from ");
+    // uart_putints(prev->tid);
+    // uart_puts(" to ");
+    // uart_putints(next->tid);
+    // uart_puts("\n");
 
     set_current_thread(next);
     switch_to(&prev->ctx, &next->ctx);
@@ -102,19 +108,54 @@ int _exec(const char *name, char *const argv[])
 /**
  * 
 */
-int _fork(void)
+int _fork(trapframe_t *trapframe)
 {
     // critical section, cannot be interrupted
     thread_t *t = create_thread(current_thread->code, current_thread->codesize);
+    thread_t *parent = current_thread;  // child would not execute this line
 
     // copy stack content from current_thread
     memcpy(t->kernel_sp, current_thread->kernel_sp, THREAD_STACK_SIZE);
     memcpy(t->user_sp, current_thread->user_sp, THREAD_STACK_SIZE);
 
+    // set fp, sp register
+    uint64_t fp, sp;
+    asm("mov %0, fp\t\n" : "=r"(fp));
+    asm("mov %0, sp\t\n" : "=r"(sp));
+
+    uint64_t fp_offset, sp_offset;
+    fp_offset = fp - (uint64_t) current_thread->kernel_sp;
+    sp_offset = sp - (uint64_t) current_thread->kernel_sp;
+
+    t->ctx.fp = t->kernel_sp + fp_offset;
+    t->ctx.sp = t->kernel_sp + fp_offset;
+
+    // set lr register
+    asm("adr %0, ." : "=r"(t->ctx.lr)); // go back to here after context switch
+    // t->ctx.lr += 4 * 8;
+
     // copy code
         // No, because share code, only exec would load new code
 
-    
+    // after fork，parent and child (kernel mode) would go here
+    if (current_thread->tid == t->tid) {    // child
+        trapframe = t->kernel_sp + (uint64_t) trapframe - (uint64_t) parent->kernel_sp;
+        trapframe->x0 = 0;
+        return 0;
+    }
+    // return t->tid;
+    trapframe->x0 = t->tid;
+}
+
+void _kill(int pid)
+{
+    thread_t *cur = thread_list;
+    while (cur) {
+        if (cur->tid == pid) {
+            cur->state = thread_dead;
+            return;
+        }
+    }
 }
 
 thread_t *get_current_thread(void)

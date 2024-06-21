@@ -63,5 +63,8 @@ run:
 run-mini-uart:
 	qemu-system-aarch64 -M raspi3b -dtb ../bcm2710-rpi-3-b-plus.dtb -initrd ../initramfs.cpio -kernel $(DIST_DIR)/kernel8.img -display none -serial null -serial stdio
 
+run-display:
+	qemu-system-aarch64 -M raspi3b -dtb ../bcm2710-rpi-3-b-plus.dtb -initrd ../initramfs.cpio -kernel $(DIST_DIR)/kernel8.img -serial null -serial stdio
+
 run-debug:
 	qemu-system-aarch64 -M raspi3b -dtb ../bcm2710-rpi-3-b-plus.dtb -initrd ../initramfs.cpio -kernel $(DIST_DIR)/kernel8.img -display none -S -s

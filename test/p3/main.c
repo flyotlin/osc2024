@@ -16,8 +16,9 @@ int main()
     // uartwrite("\n", 1);
     // uartwrite("abc\n", 4);
 
-    uartwrite("P1!\n", 4);
-    exec("p2.img", 0);
+    while (1) {
+        uartwrite("P3!\n", 4);
+    }
 
     // char buf[10];
     // while (uartread(buf, 1)) {
